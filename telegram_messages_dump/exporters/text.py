@@ -52,7 +52,11 @@ class text(object):
           if exporter_context.is_photo(msg.media):
             return (f'![{msg_date}]({file_path}{img_ext} "{name}")')
           elif exporter_context.is_video(msg.media):
-            return '[![{}](https://raw.github.com/GabLeRoux/WebMole/master/ressources/WebMole_Youtube_Video.png)](http://youtu.be/vt5fpE0bzSY)'
+            video_params = {
+              "type": "video",
+              "url": str(exporter_context.get_media_folder_name(msg.date, f"{file_name}{video_ext}"))
+            }
+            return f"```{str(video_params)}```"
 
         return msg_dump_str
 
