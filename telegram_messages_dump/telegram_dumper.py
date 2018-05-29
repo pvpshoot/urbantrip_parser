@@ -256,10 +256,10 @@ class TelegramDumper(TelegramClient):
 
             if msg.media:
                 self._download_media(msg)
-            
-           
 
-           
+
+
+
             msg_dump_str = self.exporter.format(msg, self.exporter_context)
 
             buffer.append(msg_dump_str)
@@ -406,10 +406,10 @@ class TelegramDumper(TelegramClient):
                    .format(self.settings.last_message_id, self.settings.exporter))
         else:
             # In NONE-incrimental mode
-            if os.path.exists(out_file_path):
-                sprint('Warning: The output file already exists.')
-                if not self._is_user_confirmed('Are you sure you want to overwrite it? [y/n]'):
-                    raise DumpingError("Terminating on user's request...")
+            # if os.path.exists(out_file_path):
+            #     sprint('Warning: The output file already exists.')
+            #     if not self._is_user_confirmed('Are you sure you want to overwrite it? [y/n]'):
+            #         raise DumpingError("Terminating on user's request...")
             # Check if output file can be created/overwritten
             try:
                 with open(out_file_path, mode='w+'):
@@ -428,7 +428,7 @@ class TelegramDumper(TelegramClient):
         continueResponse = input(msg).lower().strip()
         return continueResponse == 'y'\
             or continueResponse == 'yes'
-    
+
     def _download_media(self, msg):
 
         folder_name = 'media'
@@ -437,9 +437,9 @@ class TelegramDumper(TelegramClient):
         video_ext = ".mp4"
         file_ext = None
 
-        if hasattr(msg.media, 'photo'):
+        if self.exporter_context.is_photo(msg.media):
             file_ext = img_ext
-        elif msg.media.document.mime_type == 'video/mp4':
+        elif self.exporter_context.is_video(msg.media):
             file_ext = video_ext
         else:
             print('=========')
@@ -449,45 +449,43 @@ class TelegramDumper(TelegramClient):
             return
 
 
-        file_path = f"{folder_name}/{file_name}"
-        media_file = Path(
-            f"{file_path}{file_ext}")
+        file_path = self.exporter_context.get_media_folder_name(msg.date, f"{file_name}{file_ext}")
 
         print('=========')
-        print(f"{file_path}{file_ext} is already downloaded: {media_file.is_file()}")
+        print(f"{file_path} is already downloaded: {file_path.is_file()}")
         print('=========')
-        
-        if not media_file.is_file():
-            media_file_name = self.download_media(msg, file_path)
 
-    
+        if not file_path.exists():
+          self.download_media(msg, str(file_path))
+
+
 
 # Message(
-#     id=3735, 
-#     to_id=PeerChannel(channel_id=1050210764), 
-#     date=datetime.utcfromtimestamp(1527261110), 
-#     message='', 
-#     out=False, 
-#     mentioned=False, 
-#     media_unread=False, 
+#     id=3735,
+#     to_id=PeerChannel(channel_id=1050210764),
+#     date=datetime.utcfromtimestamp(1527261110),
+#     message='',
+#     out=False,
+#     mentioned=False,
+#     media_unread=False,
 #     silent=False,
-#     post=True, 
-#     from_id=None, 
-#     fwd_from=None, 
-#     via_bot_id=None, 
-#     reply_to_msg_id=None, 
+#     post=True,
+#     from_id=None,
+#     fwd_from=None,
+#     via_bot_id=None,
+#     reply_to_msg_id=None,
 #     media=MessageMediaDocument(
 #         document=Document(
-#             id=5206692083032654410, 
-#             access_hash=1910551789213345424, 
-#             date=datetime.utcfromtimestamp(1527261109), 
-#             mime_type='video/mp4', 
-#             size=6320533, 
+#             id=5206692083032654410,
+#             access_hash=1910551789213345424,
+#             date=datetime.utcfromtimestamp(1527261109),
+#             mime_type='video/mp4',
+#             size=6320533,
 #             thumb=PhotoSize(
-#                 type='s', 
+#                 type='s',
 #                 location=FileLocation(
-#                     dc_id=2, 
-#                     volume_id=246223165, 
+#                     dc_id=2,
+#                     volume_id=246223165,
 #                     l
 # Message(id=3735, to_id=PeerChannel(channel_id=1050210764), date=datetime.utcfromtimestamp(1527261110), message='', out=False, mentioned=False, media_unread=False, sil
 # ent=False

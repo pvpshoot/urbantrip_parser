@@ -36,10 +36,23 @@ class text(object):
         # pylint: disable=unused-argument
         name, _, content, re_id, _, _, _ = common.extract_message_data(msg)
         # Format a message log record
-        msg_dump_str = '[{}-{:02d}-{:02d} {:02d}:{:02d}] ID={} {}{}: {}'.format(
-            msg.date.year, msg.date.month, msg.date.day,
-            msg.date.hour, msg.date.minute, msg.id, "RE_ID=%s " % re_id if re_id else "",
-            name, self._py_encode_basestring(content))
+
+        msg_date = '{}-{:02d}-{:02d}'.format(msg.date.year, msg.date.month, msg.date.day)
+
+        msg_dump_str = '{} \n'.format(
+            self._py_encode_basestring(content))
+
+        folder_name = 'media'
+        file_name = str(msg.id)
+        img_ext = ".jpg"
+        video_ext = ".mp4"
+        file_path = f"{folder_name}/{file_name}"
+
+        if msg.media:
+          if exporter_context.is_photo(msg.media):
+            return (f'![{msg_date}]({file_path}{img_ext} "{name}")')
+          elif exporter_context.is_video(msg.media):
+            return '[![{}](https://raw.github.com/GabLeRoux/WebMole/master/ressources/WebMole_Youtube_Video.png)](http://youtu.be/vt5fpE0bzSY)'
 
         return msg_dump_str
 

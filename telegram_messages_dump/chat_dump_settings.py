@@ -72,7 +72,7 @@ class ChatDumpSettings:
             parser.error('Exporter name is invalid.')
 
         # Default output file if not specified by user
-        OUTPUT_FILE_TEMPLATE = 'telegram_{}.log'
+        OUTPUT_FILE_TEMPLATE = 'telegram_{}.md'
         if args.out != '':
             out_file = args.out
         elif args.chat.startswith(JOIN_CHAT_PREFIX_URL):
