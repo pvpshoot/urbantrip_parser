@@ -14,7 +14,7 @@ def audio_tag(src):
 
 def geo_tag(media):
   coord = media.geo
-  return f'<iframe width="600" height="450" frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBw6BH3AjlxqkRh17RaSoC-gh7zdiBogW4 &q={coord.lat},{coord.long}" allowfullscreen> </iframe>'
+  return f'<iframe width="600" height="450" frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyABp9mSthf1sop11feonGlZvEjJVyRIjas&q={coord.lat},{coord.long}" allowfullscreen> </iframe> \n'
 
 class text(object):
     """ text exporter plugin.
