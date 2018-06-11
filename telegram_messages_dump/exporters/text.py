@@ -5,7 +5,6 @@
 import re
 from .common import common
 
-
 def video_tag(src):
   return f'<video controls src="{src}"></video>'
 
@@ -69,7 +68,6 @@ class text(object):
                 return audio_tag(str(exporter_context.get_media_folder_name(msg.date, f"{file_name}{audio_ext}")))
             elif exporter_context.is_geo(msg.media):
                 return geo_tag(msg.media)
-
 
         return msg_dump_str
 

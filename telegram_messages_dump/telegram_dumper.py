@@ -32,6 +32,16 @@ from telegram_messages_dump.s3_interface import S3Interface
 import json
 
 
+import base64
+import requests
+from datetime import date
+import os
+from os.path import join, dirname
+from dotenv import load_dotenv
+
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
+
 class TelegramDumper(TelegramClient):
     """ Authenticates and opens new session. Retrieves message history for a chat. """
 
@@ -122,6 +132,8 @@ class TelegramDumper(TelegramClient):
 
         sprint('{} messages were successfully written in the resulting file. Done!'
                .format(self.output_total_count))
+        with open(self.settings.out_file, 'r') as content:
+            self.send_to_repository(content.read())
         return ret_code
 
     def _init_connect(self):
@@ -469,6 +481,26 @@ class TelegramDumper(TelegramClient):
           self.download_media(msg, str(file_path))
           self.S3.save_media(open(file_path, 'rb'), str(file_path), context_type)
 
+
+    def send_to_repository(self, content):
+        today = date.today().strftime("%Y-%m-%d")
+        # by https://github.com/settings/tokens
+        token = os.getenv('GITHUB_TOKEN')
+
+        file_path = f"content/sample-posts/{today}/index.md"
+        commit_msg = "upload posts"
+
+        request_path = f'https://api.github.com/repos/pvpshoot/urbantrip/contents/{file_path}'
+        file_content = base64.b64encode(content.encode("utf-8")).decode("utf-8")
+        data = {"message": commit_msg, "content": file_content}
+        auth = {"access_token": token}
+
+        r = requests.put(request_path, json=data, params=auth)
+
+        if r.status_code == 201:
+            sprint(f"upload file: {file_path}")
+        else:
+            sprint(f"failed upload: {r.text}")
 
 
 # Message(
