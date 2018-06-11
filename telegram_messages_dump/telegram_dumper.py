@@ -443,13 +443,17 @@ class TelegramDumper(TelegramClient):
         video_ext = ".mp4"
         audio_ext = ".oga"
         file_ext = None
+        context_type = None
 
         if self.exporter_context.is_photo(msg.media):
             file_ext = img_ext
+            context_type = 'image/jpeg'
         elif self.exporter_context.is_video(msg.media):
             file_ext = video_ext
+            context_type = 'video/mp4'
         elif self.exporter_context.is_audio(msg.media):
             file_ext = audio_ext
+            context_type = 'audio/ogg'
         elif self.exporter_context.is_geo(msg.media):
           return
         else:
@@ -461,10 +465,9 @@ class TelegramDumper(TelegramClient):
 
         file_path = self.exporter_context.get_media_folder_name(msg.date, f"{file_name}{file_ext}")
 
-
-        self.S3.save_media(open(file_path, 'rb'))
         if not file_path.exists():
           self.download_media(msg, str(file_path))
+          self.S3.save_media(open(file_path, 'rb'), str(file_path), context_type)
 
 
 

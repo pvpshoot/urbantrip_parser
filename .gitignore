@@ -110,3 +110,6 @@ ENV/
 # Include only 'default' VSCode settings
 .vscode/launch.json
 .vscode/settings.json
+.DS_Store
+telegram_@UrbanRuTrip.md.meta
+/media
