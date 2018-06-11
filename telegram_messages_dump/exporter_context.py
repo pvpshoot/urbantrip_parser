@@ -7,7 +7,7 @@ class ExporterContext:
     """ Exporter context """
 
     def get_media_folder_name(self, datetime, name):
-        return self.media_root / f'{datetime.date().isoformat()}' / name
+        return self.media_root / f'{datetime.year}-{datetime.month}' / name
 
     @staticmethod
     def is_photo(media):
@@ -15,7 +15,17 @@ class ExporterContext:
 
     @staticmethod
     def is_video(media):
-        return media.document.mime_type == 'video/mp4'
+        if hasattr(media, 'document'):
+            return media.document.mime_type == 'video/mp4'
+
+    @staticmethod
+    def is_audio(media):
+        if hasattr(media, 'document'):
+            return media.document.mime_type == 'audio/ogg'
+
+    @staticmethod
+    def is_geo(media):
+        return hasattr(media, 'geo')
 
     # pylint: disable=too-many-instance-attributes
     # pylint: disable=too-few-public-methods

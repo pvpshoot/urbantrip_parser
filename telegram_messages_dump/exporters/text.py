@@ -5,6 +5,17 @@
 import re
 from .common import common
 
+
+def video_tag(src):
+  return f'<video controls src="{src}"></video>'
+
+def audio_tag(src):
+  return f'<audio controls src="{src}"></video>'
+
+def geo_tag(media):
+  coord = media.geo
+  return f'<iframe width="600" height="450" frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBw6BH3AjlxqkRh17RaSoC-gh7zdiBogW4 &q={coord.lat},{coord.long}" allowfullscreen> </iframe>'
+
 class text(object):
     """ text exporter plugin.
         By convention it has to be called exactly the same as its file name.
@@ -46,17 +57,19 @@ class text(object):
         file_name = str(msg.id)
         img_ext = ".jpg"
         video_ext = ".mp4"
+        audio_ext = ".oga"
         file_path = f"{folder_name}/{file_name}"
 
         if msg.media:
-          if exporter_context.is_photo(msg.media):
-            return (f'![{msg_date}]({file_path}{img_ext} "{name}")')
-          elif exporter_context.is_video(msg.media):
-            video_params = {
-              "type": "video",
-              "url": str(exporter_context.get_media_folder_name(msg.date, f"{file_name}{video_ext}"))
-            }
-            return f"```{str(video_params)}```"
+            if exporter_context.is_photo(msg.media):
+                return f'![{msg_date}]({str(exporter_context.get_media_folder_name(msg.date, f"{file_name}{img_ext}"))} "{name}")'
+            elif exporter_context.is_video(msg.media):
+                return video_tag(str(exporter_context.get_media_folder_name(msg.date, f"{file_name}{video_ext}")))
+            elif exporter_context.is_audio(msg.media):
+                return audio_tag(str(exporter_context.get_media_folder_name(msg.date, f"{file_name}{audio_ext}")))
+            elif exporter_context.is_geo(msg.media):
+                return geo_tag(msg.media)
+
 
         return msg_dump_str
 

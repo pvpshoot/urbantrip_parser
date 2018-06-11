@@ -12,6 +12,7 @@ import sys
 import codecs
 import tempfile
 import logging
+from tqdm import tqdm
 from collections import deque
 from getpass import getpass
 from time import sleep
@@ -26,6 +27,7 @@ from telegram_messages_dump.utils import JOIN_CHAT_PREFIX_URL
 from telegram_messages_dump.exceptions import DumpingError
 from telegram_messages_dump.exceptions import MetadataError
 from telegram_messages_dump.exporter_context import ExporterContext
+from telegram_messages_dump.s3_interface import S3Interface
 
 import json
 
@@ -34,6 +36,9 @@ class TelegramDumper(TelegramClient):
     """ Authenticates and opens new session. Retrieves message history for a chat. """
 
     def __init__(self, session_user_id, settings, metadata, exporter):
+
+        logging.basicConfig(level=logging.DEBUG)
+        logging.getLogger('telethon').setLevel(logging.CRITICAL)
 
         self.logger = logging.getLogger(__name__)
         self.logger.info('Initializing session...')
@@ -218,6 +223,7 @@ class TelegramDumper(TelegramClient):
                 latest_message_id The latest/biggest Message ID that sucessfully went into buffer.
         """
         messages = []
+        self.S3 = S3Interface()
 
         # First retrieve the messages and some information
         # make 5 attempts
@@ -228,9 +234,9 @@ class TelegramDumper(TelegramClient):
                 messages = self.get_messages(
                     peer, limit=100, offset_id=self.id_offset)
 
-                if messages.total > 0 and messages:
-                    sprint('Processing messages with ids {}-{} ...'
-                           .format(messages[0].id, messages[-1].id))
+                # if messages.total > 0 and messages:
+                #     sprint('Processing messages with ids {}-{} ...'
+                #            .format(messages[0].id, messages[-1].id))
             except FloodWaitError as ex:
                 sprint('FloodWaitError detected. Sleep for {} sec before reconnecting! \n'
                        .format(ex.seconds))
@@ -245,7 +251,8 @@ class TelegramDumper(TelegramClient):
 
         # Iterate over all (in reverse order so the latest appear
         # the last in the console) and print them with format provided by exporter.
-        for msg in messages:
+
+        for msg in tqdm(messages):
             self.exporter_context.is_first_record = True \
                 if self.msg_count_to_process == 1 \
                 else False
@@ -430,17 +437,21 @@ class TelegramDumper(TelegramClient):
             or continueResponse == 'yes'
 
     def _download_media(self, msg):
-
         folder_name = 'media'
         file_name = str(msg.id)
         img_ext = ".jpg"
         video_ext = ".mp4"
+        audio_ext = ".oga"
         file_ext = None
 
         if self.exporter_context.is_photo(msg.media):
             file_ext = img_ext
         elif self.exporter_context.is_video(msg.media):
             file_ext = video_ext
+        elif self.exporter_context.is_audio(msg.media):
+            file_ext = audio_ext
+        elif self.exporter_context.is_geo(msg.media):
+          return
         else:
             print('=========')
             print(f'хуй пойми какой экстеншн:')
@@ -448,13 +459,10 @@ class TelegramDumper(TelegramClient):
             print('=========')
             return
 
-
         file_path = self.exporter_context.get_media_folder_name(msg.date, f"{file_name}{file_ext}")
 
-        print('=========')
-        print(f"{file_path} is already downloaded: {file_path.is_file()}")
-        print('=========')
 
+        self.S3.save_media(open(file_path, 'rb'))
         if not file_path.exists():
           self.download_media(msg, str(file_path))
 
